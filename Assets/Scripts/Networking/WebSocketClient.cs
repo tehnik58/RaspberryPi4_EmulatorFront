@@ -3,37 +3,59 @@ using System.Collections;
 using System.Text;
 using UnityEngine;
 using NativeWebSocket;
-using System.Net.WebSockets;
-using WebSocket = NativeWebSocket.WebSocket;
-using WebSocketState = NativeWebSocket.WebSocketState;
 
 /// <summary>
-/// Клиент для WebSocket соединения с сервером
-/// Обеспечивает подключение, отправку и получение сообщений
+/// Клиент WebSocket соединения с сервером
+/// Управляет подключением, отправкой и получением сообщений
 /// </summary>
 public class WebSocketClient : MonoBehaviour
 {
+    public static WebSocketClient Instance { get; private set; }
+
     [Header("Connection Settings")]
-    public string serverUrl = "ws://localhost:8000/api/ws/";  // URL сервера WebSocket
-    public float reconnectDelay = 3f;        // Задержка между попытками переподключения
-    public int maxReconnectAttempts = 5;     // Максимальное количество попыток переподключения
+    public string serverUrl = "ws://localhost:8000/api/ws/";
+    public float reconnectDelay = 3f;
+    public int maxReconnectAttempts = 5;
 
-    private WebSocket _webSocket;            // Экземпляр WebSocket
-    private string _clientId;                // Уникальный идентификатор клиента
-    private bool _isConnecting;              // Флаг процесса подключения
-    private int _reconnectAttempts;          // Счетчик попыток переподключения
+    private WebSocket _webSocket;
+    private string _clientId;
+    private bool _isConnecting;
+    private int _reconnectAttempts;
 
-    // Свойства для доступа к состоянию соединения
+    /// <summary>
+    /// Статус подключения (только для чтения)
+    /// </summary>
     public bool IsConnected => _webSocket?.State == WebSocketState.Open;
+
+    /// <summary>
+    /// Идентификатор клиента (только для чтения)
+    /// </summary>
     public string ClientId => _clientId;
 
     /// <summary>
-    /// Инициализация при старте
+    /// Инициализация Singleton при создании
+    /// </summary>
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Начальная настройка и подключение при старте
     /// </summary>
     private void Start()
     {
-        GenerateClientId();  // Генерация уникального ID клиента
-        Connect();           // Подключение к серверу
+        GenerateClientId();
+        Connect();
     }
 
     /// <summary>
@@ -50,32 +72,33 @@ public class WebSocketClient : MonoBehaviour
     /// </summary>
     public async void Connect()
     {
-        if (_isConnecting) return;  // Если уже подключаемся, выходим
+        if (_isConnecting) return;
 
         _isConnecting = true;
+        EventSystem.TriggerStatusMessage("Connecting to server...");
 
         try
         {
-            // Закрываем существующее соединение, если есть
+            // Закрываем существующее соединение если есть
             if (_webSocket != null)
             {
                 await _webSocket.Close();
                 _webSocket = null;
             }
 
+            // Формируем URL подключения
             string connectionUrl = $"{serverUrl}{_clientId}";
             Debug.Log($"Connecting to WebSocket: {connectionUrl}");
 
+            // Создаем новое WebSocket соединение
             _webSocket = new WebSocket(connectionUrl);
 
-            // Настройка обработчиков событий
-            _webSocket.OnOpen += OnWebSocketOpen;
-            _webSocket.OnError += OnWebSocketError;
-            _webSocket.OnClose += OnWebSocketClose;
-            _webSocket.OnMessage += OnWebSocketMessage;
+            // Настраиваем обработчики событий
+            SetupEventHandlers();
 
-            await _webSocket.Connect();  // Установка соединения
-            _reconnectAttempts = 0;      // Сброс счетчика попыток переподключения
+            // Устанавливаем соединение
+            await _webSocket.Connect();
+            _reconnectAttempts = 0;
         }
         catch (Exception ex)
         {
@@ -86,6 +109,17 @@ public class WebSocketClient : MonoBehaviour
         {
             _isConnecting = false;
         }
+    }
+
+    /// <summary>
+    /// Настройка обработчиков событий WebSocket
+    /// </summary>
+    private void SetupEventHandlers()
+    {
+        _webSocket.OnOpen += OnWebSocketOpen;
+        _webSocket.OnError += OnWebSocketError;
+        _webSocket.OnClose += OnWebSocketClose;
+        _webSocket.OnMessage += OnWebSocketMessage;
     }
 
     /// <summary>
@@ -118,7 +152,7 @@ public class WebSocketClient : MonoBehaviour
         EventSystem.TriggerWebSocketDisconnected(reason);
         EventSystem.TriggerStatusMessage("Disconnected from server");
 
-        // Попытка переподключения, если соединение закрыто не нормально
+        // Попытка переподключения если соединение закрыто не нормально
         if (closeCode != WebSocketCloseCode.Normal)
         {
             AttemptReconnect();
@@ -133,7 +167,12 @@ public class WebSocketClient : MonoBehaviour
         string message = Encoding.UTF8.GetString(data);
         Debug.Log($"Received message: {message}");
 
-        // TODO: Обработка сообщения с помощью MessageHandler
+        // Передаем сообщение для обработки
+        MessageHandler messageHandler = FindObjectOfType<MessageHandler>();
+        if (messageHandler != null)
+        {
+            messageHandler.ProcessMessage(message);
+        }
     }
 
     /// <summary>
@@ -173,7 +212,7 @@ public class WebSocketClient : MonoBehaviour
             Debug.Log($"Attempting to reconnect ({_reconnectAttempts}/{maxReconnectAttempts})...");
             EventSystem.TriggerStatusMessage($"Reconnecting... ({_reconnectAttempts}/{maxReconnectAttempts})");
 
-            Invoke(nameof(Connect), reconnectDelay);  // Повторная попытка через задержку
+            Invoke(nameof(Connect), reconnectDelay);
         }
         else
         {
@@ -192,7 +231,7 @@ public class WebSocketClient : MonoBehaviour
     }
 
     /// <summary>
-    /// Обновление состояния WebSocket (обработка очереди сообщений)
+    /// Обработка очереди сообщений каждый кадр
     /// </summary>
     private void Update()
     {

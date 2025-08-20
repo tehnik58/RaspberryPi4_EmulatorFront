@@ -8,10 +8,29 @@ using System.Collections;
 /// </summary>
 public class SceneLoader : MonoBehaviour
 {
-    [SerializeField] private GameObject loadingScreen;  // Ссылка на объект экрана загрузки
-    [SerializeField] private float minimumLoadTime = 1.0f;  // Минимальное время показа экрана загрузки
+    public static SceneLoader Instance { get; private set; }
 
-    private string _currentSceneName;  // Имя текущей загруженной сцены
+    [Header("UI References")]
+    public GameObject loadingScreen;
+    public float minimumLoadTime = 1.0f;
+
+    private string _currentSceneName;
+
+    /// <summary>
+    /// Инициализация Singleton при создании
+    /// </summary>
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     /// <summary>
     /// Загрузка сцены по имени
@@ -19,9 +38,9 @@ public class SceneLoader : MonoBehaviour
     /// <param name="sceneName">Имя сцены для загрузки</param>
     public void LoadScene(string sceneName)
     {
-        if (_currentSceneName == sceneName) return;  // Если сцена уже загружена, выходим
+        if (_currentSceneName == sceneName) return;
 
-        StartCoroutine(LoadSceneCoroutine(sceneName));  // Запускаем корутину загрузки
+        StartCoroutine(LoadSceneCoroutine(sceneName));
     }
 
     /// <summary>
@@ -30,33 +49,32 @@ public class SceneLoader : MonoBehaviour
     private IEnumerator LoadSceneCoroutine(string sceneName)
     {
         // Показываем экран загрузки
-        if (loadingScreen != null) loadingScreen.SetActive(true);
-
+        ShowLoadingScreen(true);
         EventSystem.TriggerStatusMessage($"Loading {sceneName}...");
 
-        float startTime = Time.time;  // Запоминаем время начала загрузки
+        float startTime = Time.time;
 
-        // Выгружаем текущую сцену, если она существует
+        // Выгружаем текущую сцену если она существует
         if (!string.IsNullOrEmpty(_currentSceneName))
         {
             AsyncOperation unloadOperation = SceneManager.UnloadSceneAsync(_currentSceneName);
             while (!unloadOperation.isDone)
             {
-                yield return null;  // Ждем завершения выгрузки
+                yield return null;
             }
         }
 
         // Загружаем новую сцену асинхронно
         AsyncOperation loadOperation = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-        loadOperation.allowSceneActivation = false;  // Запрещаем автоматическую активацию
+        loadOperation.allowSceneActivation = false;
 
-        // Ждем завершения загрузки и минимального времени показа экрана загрузки
+        // Ждем завершения загрузки и минимального времени показа
         while (loadOperation.progress < 0.9f || (Time.time - startTime) < minimumLoadTime)
         {
             yield return null;
         }
 
-        loadOperation.allowSceneActivation = true;  // Разрешаем активацию сцены
+        loadOperation.allowSceneActivation = true;
 
         // Ждем полной загрузки сцены
         while (!loadOperation.isDone)
@@ -69,9 +87,19 @@ public class SceneLoader : MonoBehaviour
         _currentSceneName = sceneName;
 
         // Скрываем экран загрузки
-        if (loadingScreen != null) loadingScreen.SetActive(false);
-
+        ShowLoadingScreen(false);
         EventSystem.TriggerStatusMessage($"{sceneName} loaded successfully");
+    }
+
+    /// <summary>
+    /// Показать/скрыть экран загрузки
+    /// </summary>
+    private void ShowLoadingScreen(bool show)
+    {
+        if (loadingScreen != null)
+        {
+            loadingScreen.SetActive(show);
+        }
     }
 
     /// <summary>

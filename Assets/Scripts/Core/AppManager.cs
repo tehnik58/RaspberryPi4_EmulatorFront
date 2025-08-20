@@ -1,38 +1,37 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 /// <summary>
-/// Главный менеджер приложения, отвечающий за инициализацию и координацию всех систем
-/// Реализует шаблон Singleton для глобального доступа
+/// Главный менеджер приложения, координирует все системы
+/// Центральный узел управления всем приложением
 /// </summary>
 public class AppManager : MonoBehaviour
 {
-    // Статическая ссылка на экземпляр для реализации шаблона Singleton
     public static AppManager Instance { get; private set; }
 
     [Header("Dependencies")]
-    public WebSocketClient webSocketClient;      // Клиент для WebSocket соединения
-    public SceneLoader sceneLoader;              // Загрузчик сцен
-    public GameStateManager gameStateManager;    // Менеджер состояния приложения
+    public WebSocketClient webSocketClient;
+    public SceneLoader sceneLoader;
+    public GameStateManager gameStateManager;
+    public UIManager uiManager;
 
     /// <summary>
-    /// Вызывается при создании объекта, обеспечивает единственность экземпляра
+    /// Инициализация Singleton при создании
     /// </summary>
     private void Awake()
     {
-        // Реализация шаблона Singleton
+        // Реализация паттерна Singleton
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);  // Сохраняем объект между сценами
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
-            Destroy(gameObject);  // Уничтожаем дубликаты
+            Destroy(gameObject);
             return;
         }
 
-        Initialize();  // Инициализация приложения
+        Initialize();
     }
 
     /// <summary>
@@ -42,60 +41,106 @@ public class AppManager : MonoBehaviour
     {
         Debug.Log("Initializing AppManager...");
 
-        // Инициализация подсистем
-        gameStateManager = new GameStateManager();
-        sceneLoader = GetComponent<SceneLoader>();
-        webSocketClient = GetComponent<WebSocketClient>();
+        // Поиск и инициализация всех зависимостей
+        InitializeDependencies();
 
-        // Установка начального состояния приложения
-        gameStateManager.SetState(GameState.Initializing);
+        // Подписка на глобальные события
+        SubscribeToEvents();
 
-        // Подписка на события системы событий
-        EventSystem.OnApplicationError += HandleApplicationError;
+        // Установка начального состояния
+        gameStateManager.SetState(GameState.MainMenu);
 
         Debug.Log("AppManager initialized successfully");
-        gameStateManager.SetState(GameState.MainMenu);  // Переход в состояние главного меню
+    }
 
-        webSocketClient = GetComponent<WebSocketClient>();
+    /// <summary>
+    /// Инициализация всех зависимых компонентов
+    /// </summary>
+    private void InitializeDependencies()
+    {
+        // Инициализация менеджера состояния
+        gameStateManager = GameStateManager.Instance;
+        if (gameStateManager == null)
+        {
+            Debug.LogError("GameStateManager not found!");
+        }
+
+        // Инициализация WebSocket клиента
+        webSocketClient = WebSocketClient.Instance;
         if (webSocketClient == null)
         {
-            webSocketClient = gameObject.AddComponent<WebSocketClient>();
+            Debug.LogError("WebSocketClient not found!");
         }
 
-        MessageHandler messageHandler = GetComponent<MessageHandler>();
-        if (messageHandler == null)
-        {
-            messageHandler = gameObject.AddComponent<MessageHandler>();
-        }
-
-        sceneLoader = GetComponent<SceneLoader>();
+        // Инициализация загрузчика сцен
+        sceneLoader = SceneLoader.Instance;
         if (sceneLoader == null)
         {
-            sceneLoader = gameObject.AddComponent<SceneLoader>();
+            Debug.LogError("SceneLoader not found!");
         }
+
+        // Инициализация UI менеджера
+        uiManager = FindObjectOfType<UIManager>();
+        if (uiManager == null)
+        {
+            Debug.LogWarning("UIManager not found, UI functionality will be limited");
+        }
+    }
+
+    /// <summary>
+    /// Подписка на глобальные события системы
+    /// </summary>
+    private void SubscribeToEvents()
+    {
+        EventSystem.OnApplicationError += HandleApplicationError;
+        EventSystem.OnStatusMessage += HandleStatusMessage;
+    }
+
+    /// <summary>
+    /// Отписка от событий при уничтожении
+    /// </summary>
+    private void UnsubscribeFromEvents()
+    {
+        EventSystem.OnApplicationError -= HandleApplicationError;
+        EventSystem.OnStatusMessage -= HandleStatusMessage;
     }
 
     /// <summary>
     /// Обработчик ошибок приложения
     /// </summary>
-    /// <param name="errorMessage">Сообщение об ошибке</param>
-    /// <param name="severity">Уровень серьезности ошибки</param>
     private void HandleApplicationError(string errorMessage, ErrorSeverity severity)
     {
         Debug.LogError($"Application error: {errorMessage} (Severity: {severity})");
 
-        // TODO: Показать ошибку пользователю в зависимости от уровня серьезности
+        // Передача ошибки в UI систему если она доступна
+        if (uiManager != null)
+        {
+            uiManager.ShowError(errorMessage, severity);
+        }
+
+        // Для критических ошибок переходим в состояние ошибки
+        if (severity >= ErrorSeverity.High)
+        {
+            gameStateManager.SetState(GameState.Error);
+        }
     }
 
     /// <summary>
-    /// Вызывается при уничтожении объекта, отписываемся от событий
+    /// Обработчик статусных сообщений
+    /// </summary>
+    private void HandleStatusMessage(string message)
+    {
+        Debug.Log($"Status: {message}");
+    }
+
+    /// <summary>
+    /// Вызывается при уничтожении объекта, выполняет очистку
     /// </summary>
     private void OnDestroy()
     {
-        // Отписываемся от событий, если это основной экземпляр
         if (Instance == this)
         {
-            EventSystem.OnApplicationError -= HandleApplicationError;
+            UnsubscribeFromEvents();
         }
     }
 }

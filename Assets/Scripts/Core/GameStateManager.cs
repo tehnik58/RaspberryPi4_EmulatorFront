@@ -1,22 +1,48 @@
 using UnityEngine;
 
-/// Менеджер состояния приложения, управляет переходами между состояниями
-/// Реализует конечный автомат для управления потоком приложения
+/// <summary>
+/// Перечисление состояний приложения
 /// </summary>
 public enum GameState
 {
-    Initializing,   // Начальная инициализация приложения
+    Initializing,   // Начальная инициализация
     MainMenu,       // Главное меню
     Constructor,    // Режим конструктора
     ExecutingCode,  // Выполнение кода
     Error           // Состояние ошибки
 }
 
-public class GameStateManager
+/// <summary>
+/// Менеджер состояния приложения с паттерном Singleton
+/// Управляет переходами между состояниями и уведомляет о изменениях
+/// </summary>
+public class GameStateManager : MonoBehaviour
 {
-    private GameState _currentState = GameState.Initializing;  // Текущее состояние приложения
+    public static GameStateManager Instance { get; private set; }
 
-    public GameState CurrentState => _currentState;  // Публичное свойство для чтения текущего состояния
+    private GameState _currentState = GameState.Initializing;
+
+    /// <summary>
+    /// Текущее состояние приложения (только для чтения)
+    /// </summary>
+    public GameState CurrentState => _currentState;
+
+    /// <summary>
+    /// Вызывается при создании объекта, настраивает Singleton
+    /// </summary>
+    private void Awake()
+    {
+        // Реализация паттерна Singleton
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // Сохраняем между сценами
+        }
+        else
+        {
+            Destroy(gameObject); // Уничтожаем дубликаты
+        }
+    }
 
     /// <summary>
     /// Установка нового состояния приложения
@@ -24,12 +50,14 @@ public class GameStateManager
     /// <param name="newState">Новое состояние</param>
     public void SetState(GameState newState)
     {
-        if (_currentState == newState) return;  // Если состояние не изменилось, выходим
+        // Если состояние не изменилось, выходим
+        if (_currentState == newState) return;
 
-        GameState oldState = _currentState;  // Сохраняем предыдущее состояние
-        _currentState = newState;            // Устанавливаем новое состояние
+        // Сохраняем предыдущее состояние
+        GameState oldState = _currentState;
+        _currentState = newState;
 
-        // Вызываем событие изменения состояния
+        // Уведомляем систему событий об изменении состояния
         EventSystem.TriggerGameStateChanged(oldState, newState);
         Debug.Log($"Game state changed: {oldState} -> {newState}");
     }
@@ -38,7 +66,7 @@ public class GameStateManager
     /// Проверка текущего состояния
     /// </summary>
     /// <param name="state">Состояние для проверки</param>
-    /// <returns>True если текущее состояние соответствует проверяемому</returns>
+    /// <returns>True если текущее состояние соответствует</returns>
     public bool IsState(GameState state)
     {
         return _currentState == state;
@@ -48,7 +76,7 @@ public class GameStateManager
     /// Проверка текущего состояния на соответствие одному из нескольких
     /// </summary>
     /// <param name="states">Массив состояний для проверки</param>
-    /// <returns>True если текущее состояние соответствует одному из проверяемых</returns>
+    /// <returns>True если текущее состояние соответствует одному из указанных</returns>
     public bool IsState(params GameState[] states)
     {
         foreach (GameState state in states)
