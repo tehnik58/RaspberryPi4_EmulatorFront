@@ -20,15 +20,6 @@ public class GPIOStateChangedEvent : GameEvent
 
 public class ExecutionStartedEvent : GameEvent { }
 public class ExecutionStoppedEvent : GameEvent { }
-
-public class RawMessageEvent : GameEvent
-{
-    public string Message { get; }
-    public RawMessageEvent(string message)
-    {
-        Message = message;
-    }
-}
 public class ConnectionStatusEvent : GameEvent
 {
     public bool IsConnected { get; }

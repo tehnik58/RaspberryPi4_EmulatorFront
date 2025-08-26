@@ -6,12 +6,24 @@ using TMPro;
 
 public class ConsoleOutput : MonoBehaviour
 {
+    
     public enum MessageType
     {
         Info,
         Error,
         Success,
         Warning
+    }
+    
+    public class RawMessageEvent : GameEvent
+    {
+        public string Message { get; }
+        public MessageType Type { get; }
+        public RawMessageEvent(string message, MessageType type = MessageType.Info)
+        {
+            Message = message;
+            Type = type;
+        }
     }
 
     [SerializeField] private TMP_Text consoleText;
@@ -20,10 +32,10 @@ public class ConsoleOutput : MonoBehaviour
     [SerializeField] private bool autoScroll = true;
 
     [Header("Colors")]
-    [SerializeField] private Color infoColor = Color.white;
-    [SerializeField] private Color errorColor = Color.red;
-    [SerializeField] private Color successColor = Color.green;
-    [SerializeField] private Color warningColor = Color.yellow;
+    [SerializeField] private static Color infoColor = Color.white;
+    [SerializeField] private static Color errorColor = Color.red;
+    [SerializeField] private static Color successColor = Color.green;
+    [SerializeField] private static Color warningColor = Color.yellow;
 
     private Queue<string> messageQueue = new Queue<string>();
     private bool isDirty = false;
@@ -136,7 +148,7 @@ public class ConsoleOutput : MonoBehaviour
         autoScroll = enable;
     }
 
-    private Color GetColorForType(MessageType type)
+    public static Color GetColorForType(MessageType type)
     {
         return type switch
         {

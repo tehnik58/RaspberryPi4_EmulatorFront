@@ -8,7 +8,6 @@ using System.Text.RegularExpressions;
 public class RaspberryPiEmulator : MonoBehaviour
 {
     private WebSocketManager webSocketManager;
-    private GPIOVisualizer gpioVisualizer;
     private ConsoleOutput consoleOutput;
 
     [SerializeField] private string initialCode = @"import RPi.GPIO as GPIO
@@ -43,7 +42,6 @@ finally:
         }
 
         // Затем находим остальные компоненты
-        gpioVisualizer = FindObjectOfType<GPIOVisualizer>();
         consoleOutput = FindObjectOfType<ConsoleOutput>();
 
         // Проверяем что все компоненты найдены
@@ -51,11 +49,6 @@ finally:
             Debug.LogError("ConsoleOutput not found!");
         else
             Debug.Log("ConsoleOutput found");
-
-        if (gpioVisualizer == null)
-            Debug.LogWarning("⚠️ GPIOVisualizer not found!");
-        else
-            Debug.Log("GPIOVisualizer found");
 
         // Подписываемся на события
         webSocketManager.OnMessageReceived += HandleWebSocketMessage;
@@ -120,11 +113,6 @@ finally:
             {
                 consoleOutput.AddMessage("Код отправлен на выполнение", ConsoleOutput.MessageType.Success);
             }
-
-            if (gpioVisualizer != null)
-            {
-                gpioVisualizer.ResetAllPins();
-            }
         }
         catch (Exception ex)
         {
@@ -154,8 +142,6 @@ finally:
     }
     private void DetectGPIOEvents(string output)
     {
-        if (gpioVisualizer == null) return;
-
         Match outputMatch = Regex.Match(output, @"GPIO\s+(\d+)\s+output:\s+(True|False)", RegexOptions.IgnoreCase);
         if (outputMatch.Success)
         {
@@ -173,7 +159,7 @@ finally:
             consoleOutput.AddMessage(message, ConsoleOutput.MessageType.Info);
         }
         DetectGPIOEvents(message);
-        EventManager.Instance.Publish(new RawMessageEvent(message));
+        EventManager.Instance.Publish(new ConsoleOutput.RawMessageEvent(message));
     }
 
     private void OnConnected()
