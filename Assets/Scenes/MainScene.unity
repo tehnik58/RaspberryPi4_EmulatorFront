@@ -1528,7 +1528,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 36500952306412890, guid: 76e61e1f521135549ba7ad49dc06add8, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000091552734
+      value: 0.000030517578
       objectReference: {fileID: 0}
     - target: {fileID: 245825427058818412, guid: 76e61e1f521135549ba7ad49dc06add8, type: 3}
       propertyPath: m_Pivot.x
@@ -1691,8 +1691,7 @@ PrefabInstance:
       propertyPath: m_Name
       value: GameManager
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 1043828678444774364, guid: e3a512d09c9249f4c87f7a7b782f0469, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
