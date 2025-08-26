@@ -27,14 +27,14 @@ public class DigitalTwinManager : MonoBehaviour
     private void OnGPIOStateChanged(GPIOStateChangedEvent eventData)
     {
         PinStates[eventData.PinNumber] = eventData.IsActive;
-        Debug.Log($"Digital Twin: Pin {eventData.PinNumber} set to {eventData.IsActive}");
+        //Debug.Log($"Digital Twin: Pin {eventData.PinNumber} set to {eventData.IsActive}");
         // Здесь можно добавить любую другую логику, которая должна реагировать на изменение состояния пина
     }
 
     private void OnConnectionStatusChanged(ConnectionStatusEvent eventData)
     {
         IsConnected = eventData.IsConnected;
-        Debug.Log($"Digital Twin: Connection status changed to {IsConnected}");
+        //Debug.Log($"Digital Twin: Connection status changed to {IsConnected}");
     }
 
     private void OnExecutionStarted(ExecutionStartedEvent eventData)

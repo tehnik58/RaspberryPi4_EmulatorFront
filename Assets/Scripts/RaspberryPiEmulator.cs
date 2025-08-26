@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using static MessageClassifier;
 
 public class RaspberryPiEmulator : MonoBehaviour
 {
@@ -84,7 +85,7 @@ finally:
             Debug.Log("Empty code");
             if (consoleOutput != null)
             {
-                consoleOutput.AddMessage("Ошибка: Пустой код", ConsoleOutput.MessageType.Error);
+                consoleOutput.AddMessage("Ошибка: Пустой код", MessageType.Error);
             }
             return;
         }
@@ -94,7 +95,7 @@ finally:
             Debug.Log("WebSocket not connected");
             if (consoleOutput != null)
             {
-                consoleOutput.AddMessage("Ошибка: Нет соединения с сервером", ConsoleOutput.MessageType.Error);
+                consoleOutput.AddMessage("Ошибка: Нет соединения с сервером", MessageType.Error);
             }
             return;
         }
@@ -111,7 +112,7 @@ finally:
         
             if (consoleOutput != null)
             {
-                consoleOutput.AddMessage("Код отправлен на выполнение", ConsoleOutput.MessageType.Success);
+                consoleOutput.AddMessage("Код отправлен на выполнение", MessageType.Success);
             }
         }
         catch (Exception ex)
@@ -119,7 +120,7 @@ finally:
             Debug.LogError($"Send error: {ex.Message}");
             if (consoleOutput != null)
             {
-                consoleOutput.AddMessage($"Ошибка отправки: {ex.Message}", ConsoleOutput.MessageType.Error);
+                consoleOutput.AddMessage($"Ошибка отправки: {ex.Message}", MessageType.Error);
             }
         }
     }
@@ -153,24 +154,23 @@ finally:
     
     private void HandleWebSocketMessage(string message)
     {
-        Debug.Log($"📨 Received: {message}");
+        //Debug.Log($"📨 Received: {message}");
         if (consoleOutput != null)
         {
-            consoleOutput.AddMessage(message, ConsoleOutput.MessageType.Info);
+            consoleOutput.AddMessage(message, MessageType.Info);
         }
         DetectGPIOEvents(message);
-        EventManager.Instance.Publish(new ConsoleOutput.RawMessageEvent(message));
     }
 
     private void OnConnected()
     {
-        consoleOutput?.AddMessage("Подключено к серверу", ConsoleOutput.MessageType.Success);
+        consoleOutput?.AddMessage("Подключено к серверу", MessageType.Success);
         EventManager.Instance.Publish(new ConnectionStatusEvent(true));
     }
 
     private void OnDisconnected()
     {
-        consoleOutput?.AddMessage("Соединение потеряно", ConsoleOutput.MessageType.Error);
+        consoleOutput?.AddMessage("Соединение потеряно", MessageType.Error);
         EventManager.Instance.Publish(new ConnectionStatusEvent(false));
     }
 
@@ -179,7 +179,7 @@ finally:
         Debug.LogError($"Error: {error}");
         if (consoleOutput != null)
         {
-            consoleOutput.AddMessage($"⚠ Ошибка: {error}", ConsoleOutput.MessageType.Error);
+            consoleOutput.AddMessage($"⚠ Ошибка: {error}", MessageType.Error);
         }
     }
 

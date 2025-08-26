@@ -1,78 +1,49 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using static MessageClassifier;
 
 public class ConsoleOutput : MonoBehaviour
 {
-    
-    public enum MessageType
-    {
-        Info,
-        Error,
-        Success,
-        Warning
-    }
-    
-    public class RawMessageEvent : GameEvent
-    {
-        public string Message { get; }
-        public MessageType Type { get; }
-        public RawMessageEvent(string message, MessageType type = MessageType.Info)
-        {
-            Message = message;
-            Type = type;
-        }
-    }
-
+    [Header("Required References")]
     [SerializeField] private TMP_Text consoleText;
     [SerializeField] private ScrollRect scrollRect;
+
+    [Header("Settings")]
     [SerializeField] private int maxLines = 1000;
     [SerializeField] private bool autoScroll = true;
+    [SerializeField] private bool enableRichText = true;
+    [SerializeField] private bool extractFromJson = true; // Новая опция для извлечения из JSON
 
-    [Header("Colors")]
-    [SerializeField] private static Color infoColor = Color.white;
-    [SerializeField] private static Color errorColor = Color.red;
-    [SerializeField] private static Color successColor = Color.green;
-    [SerializeField] private static Color warningColor = Color.yellow;
+    [Header("Message Colors")]
+    [SerializeField] private Color infoColor = Color.white;
+    [SerializeField] private Color errorColor = Color.red;
+    [SerializeField] private Color successColor = Color.green;
+    [SerializeField] private Color warningColor = Color.yellow;
 
     private Queue<string> messageQueue = new Queue<string>();
-    private bool isDirty = false;
-    private float scrollTimer = 0f;
-    private const float scrollDelay = 0.1f;
 
-    void Start()
+    private void Awake()
     {
-        if (consoleText == null)
-        {
-            consoleText = GetComponentInChildren<TMP_Text>();
-        }
-        
-        if (scrollRect == null)
-        {
-            scrollRect = GetComponent<ScrollRect>();
-        }
-        
-        Clear();
-        AddMessage("РљРѕРЅСЃРѕР»СЊ РёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅР°", MessageType.Info);
+        ValidateComponents();
+        SetupTextComponent();
     }
 
-    void Update()
+    private void ValidateComponents()
     {
-        if (isDirty)
+        if (consoleText == null)
+            consoleText = GetComponentInChildren<TMP_Text>();
+
+        if (scrollRect == null)
+            scrollRect = GetComponentInChildren<ScrollRect>();
+    }
+
+    private void SetupTextComponent()
+    {
+        if (consoleText != null)
         {
-            scrollTimer += Time.deltaTime;
-            if (scrollTimer >= scrollDelay)
-            {
-                UpdateConsoleDisplay();
-                if (autoScroll)
-                {
-                    ScrollToBottom();
-                }
-                isDirty = false;
-                scrollTimer = 0f;
-            }
+            consoleText.richText = enableRichText;
         }
     }
 
@@ -80,75 +51,158 @@ public class ConsoleOutput : MonoBehaviour
     {
         if (string.IsNullOrEmpty(message)) return;
 
-        Color color = GetColorForType(type);
-        string timestamp = System.DateTime.Now.ToString("HH:mm:ss");
-        string coloredMessage = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>[{timestamp}] {message}</color>\n";
+        // Извлекаем чистое сообщение из JSON если нужно
+        string cleanMessage = extractFromJson ? ExtractContentFromJson(message) : message;
 
-        messageQueue.Enqueue(coloredMessage);
+        string formattedMessage = enableRichText ?
+            FormatMessageWithColor(cleanMessage, GetColorForType(type)) :
+            FormatMessagePlain(cleanMessage);
 
-        // РћРіСЂР°РЅРёС‡РёРІР°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ СЃС‚СЂРѕРє
+        messageQueue.Enqueue(formattedMessage);
+
         while (messageQueue.Count > maxLines)
-        {
             messageQueue.Dequeue();
-        }
 
-        isDirty = true;
-        scrollTimer = 0f;
+        UpdateConsoleDisplay();
+
+        if (autoScroll)
+            ScrollToBottom();
     }
 
-    public void Clear()
+    public void AddMessage(string message, Color customColor)
     {
-        messageQueue.Clear();
-        consoleText.text = "";
-        AddMessage("РљРѕРЅСЃРѕР»СЊ РѕС‡РёС‰РµРЅР°", MessageType.Info);
+        if (string.IsNullOrEmpty(message)) return;
+
+        // Извлекаем чистое сообщение из JSON если нужно
+        string cleanMessage = extractFromJson ? ExtractContentFromJson(message) : message;
+
+        string formattedMessage = enableRichText ?
+            FormatMessageWithColor(cleanMessage, customColor) :
+            FormatMessagePlain(cleanMessage);
+
+        messageQueue.Enqueue(formattedMessage);
+
+        while (messageQueue.Count > maxLines)
+            messageQueue.Dequeue();
+
+        UpdateConsoleDisplay();
+
+        if (autoScroll)
+            ScrollToBottom();
+    }
+
+    // Метод для извлечения content из JSON сообщения
+    private string ExtractContentFromJson(string jsonMessage)
+    {
+        try
+        {
+            // Простая проверка, является ли строка JSON
+            if (jsonMessage.Trim().StartsWith("{") && jsonMessage.Trim().EndsWith("}"))
+            {
+                // Ищем поле "content" в JSON
+                int contentStart = jsonMessage.IndexOf("\"content\"") + "\"content\"".Length;
+                if (contentStart > 0)
+                {
+                    // Пропускаем двоеточие и пробелы
+                    contentStart = jsonMessage.IndexOf(':', contentStart) + 1;
+                    while (contentStart < jsonMessage.Length && char.IsWhiteSpace(jsonMessage[contentStart]))
+                        contentStart++;
+
+                    // Определяем начало и конец значения
+                    int valueStart = contentStart;
+                    int valueEnd = jsonMessage.Length - 1;
+
+                    // Если значение в кавычках
+                    if (valueStart < jsonMessage.Length && jsonMessage[valueStart] == '"')
+                    {
+                        valueStart++; // Пропускаем открывающую кавычку
+                        valueEnd = jsonMessage.IndexOf('"', valueStart);
+                        if (valueEnd < 0) valueEnd = jsonMessage.Length - 1;
+                    }
+                    else
+                    {
+                        // Ищем конец значения (запятая или закрывающая скобка)
+                        valueEnd = valueStart;
+                        while (valueEnd < jsonMessage.Length &&
+                               jsonMessage[valueEnd] != ',' &&
+                               jsonMessage[valueEnd] != '}')
+                        {
+                            valueEnd++;
+                        }
+                    }
+
+                    if (valueStart < valueEnd)
+                    {
+                        return jsonMessage.Substring(valueStart, valueEnd - valueStart).Trim();
+                    }
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"Failed to extract content from JSON: {e.Message}");
+        }
+
+        // Если не удалось извлечь из JSON, возвращаем оригинальное сообщение
+        return jsonMessage;
+    }
+
+    private string FormatMessageWithColor(string message, Color color)
+    {
+        string timestamp = $"[{System.DateTime.Now:HH:mm:ss}] ";
+        string hexColor = ColorUtility.ToHtmlStringRGB(color);
+        return $"<color=#{hexColor}>{timestamp}{message}</color>\n";
+    }
+
+    private string FormatMessagePlain(string message)
+    {
+        string timestamp = $"[{System.DateTime.Now:HH:mm:ss}] ";
+        return $"{timestamp}{message}\n";
     }
 
     private void UpdateConsoleDisplay()
     {
         if (consoleText != null)
-        {
             consoleText.text = string.Join("", messageQueue);
-        }
     }
 
-    public void ScrollToBottom()
+    private void ScrollToBottom()
     {
         if (scrollRect != null)
         {
-            // РќРµСЃРєРѕР»СЊРєРѕ СЃРїРѕСЃРѕР±РѕРІ РїСЂРѕРєСЂСѓС‚РєРё РґР»СЏ РЅР°РґРµР¶РЅРѕСЃС‚Рё
             Canvas.ForceUpdateCanvases();
-            
-            // РЎРїРѕСЃРѕР± 1: РџСЂСЏРјР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° РїРѕР·РёС†РёРё
             scrollRect.verticalNormalizedPosition = 0f;
-            
-            // РЎРїРѕСЃРѕР± 2: Р§РµСЂРµР· Content РїРѕР·РёС†РёСЋ
-            if (scrollRect.content != null)
-            {
-                scrollRect.content.anchoredPosition = new Vector2(
-                    scrollRect.content.anchoredPosition.x,
-                    0f
-                );
-            }
-            
-            // РЎРїРѕСЃРѕР± 3: Р§РµСЂРµР· Layout Group
-            LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
         }
     }
 
-    public void ScrollToTop()
+    public void Clear()
     {
-        if (scrollRect != null)
-        {
-            scrollRect.verticalNormalizedPosition = 1f;
-        }
+        messageQueue.Clear();
+        UpdateConsoleDisplay();
     }
 
-    public void ToggleAutoScroll(bool enable)
+    public void SetMaxLines(int newMaxLines)
+    {
+        maxLines = Mathf.Max(1, newMaxLines);
+        while (messageQueue.Count > maxLines)
+            messageQueue.Dequeue();
+
+        UpdateConsoleDisplay();
+    }
+
+    public void SetAutoScroll(bool enable)
     {
         autoScroll = enable;
+        if (autoScroll)
+            ScrollToBottom();
     }
 
-    public static Color GetColorForType(MessageType type)
+    public void SetExtractFromJson(bool enable)
+    {
+        extractFromJson = enable;
+    }
+
+    private Color GetColorForType(MessageType type)
     {
         return type switch
         {
@@ -160,12 +214,9 @@ public class ConsoleOutput : MonoBehaviour
         };
     }
 
-    // РњРµС‚РѕРґС‹ РґР»СЏ Р±С‹СЃС‚СЂРѕРіРѕ РґРѕР±Р°РІР»РµРЅРёСЏ СЃРѕРѕР±С‰РµРЅРёР№
+    // Public shortcuts for message types
     public void AddInfo(string message) => AddMessage(message, MessageType.Info);
     public void AddError(string message) => AddMessage(message, MessageType.Error);
     public void AddSuccess(string message) => AddMessage(message, MessageType.Success);
     public void AddWarning(string message) => AddMessage(message, MessageType.Warning);
-
-    // РЎРІРѕР№СЃС‚РІРѕ РґР»СЏ РґРѕСЃС‚СѓРїР° Рє РєРѕР»РёС‡РµСЃС‚РІСѓ СЃРѕРѕР±С‰РµРЅРёР№
-    public int MessageCount => messageQueue.Count;
 }

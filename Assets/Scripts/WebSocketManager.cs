@@ -111,7 +111,7 @@ public class WebSocketManager : MonoBehaviour
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Debug.Log($"📨 Received message: {message}");
+                    //Debug.Log($"📨 Received message: {message}");
                     
                     lock (queueLock)
                     {
@@ -155,7 +155,7 @@ public class WebSocketManager : MonoBehaviour
             while (messageQueue.Count > 0)
             {
                 string message = messageQueue.Dequeue();
-                Debug.Log($"Processing message: {message}");
+                //Debug.Log($"Processing message: {message}");
                 OnMessageReceived(message);
             }
         }
