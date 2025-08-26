@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6344423523684007796
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1611494238737894407}
+  - component: {fileID: 6800307797182199241}
+  - component: {fileID: 690423582792002070}
+  - component: {fileID: 1043828678444774364}
+  - component: {fileID: 4588667956828416712}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1611494238737894407
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6344423523684007796}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6800307797182199241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6344423523684007796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0f028e8cedf74bd4cae5aae57f98e3a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialCode: "import RPi.GPIO as GPIO\r\nimport time\r\n\r\nGPIO.setmode(GPIO.BCM)\r\nGPIO.setup(18,
+    GPIO.OUT)\r\n\r\ntry:\r\n    for i in range(10):\r\n        GPIO.output(18, GPIO.HIGH)\r\n       
+    time.sleep(0.5)\r\n        GPIO.output(18, GPIO.LOW)\r\n        time.sleep(0.5)\r\nfinally:\r\n   
+    GPIO.cleanup()"
+--- !u!114 &690423582792002070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6344423523684007796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1e76ea91c41324eb4e85107100eaef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1043828678444774364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6344423523684007796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01b6335266535f849921080e690d836e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4588667956828416712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6344423523684007796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3f8d5d62a7f6fd48b6a26ce83fc1360, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
