@@ -14,7 +14,7 @@ public class ConsoleOutput : MonoBehaviour
     [SerializeField] private int maxLines = 1000;
     [SerializeField] private bool autoScroll = true;
     [SerializeField] private bool enableRichText = true;
-    [SerializeField] private bool extractFromJson = true; // Новая опция для извлечения из JSON
+    [SerializeField] private bool extractFromJson = true; // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ JSON
 
     [Header("Message Colors")]
     [SerializeField] private Color infoColor = Color.white;
@@ -51,7 +51,7 @@ public class ConsoleOutput : MonoBehaviour
     {
         if (string.IsNullOrEmpty(message)) return;
 
-        // Извлекаем чистое сообщение из JSON если нужно
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ JSON пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         string cleanMessage = extractFromJson ? ExtractContentFromJson(message) : message;
 
         string formattedMessage = enableRichText ?
@@ -73,7 +73,7 @@ public class ConsoleOutput : MonoBehaviour
     {
         if (string.IsNullOrEmpty(message)) return;
 
-        // Извлекаем чистое сообщение из JSON если нужно
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ JSON пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
         string cleanMessage = extractFromJson ? ExtractContentFromJson(message) : message;
 
         string formattedMessage = enableRichText ?
@@ -91,37 +91,37 @@ public class ConsoleOutput : MonoBehaviour
             ScrollToBottom();
     }
 
-    // Метод для извлечения content из JSON сообщения
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ content пїЅпїЅ JSON пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     private string ExtractContentFromJson(string jsonMessage)
     {
         try
         {
-            // Простая проверка, является ли строка JSON
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ JSON
             if (jsonMessage.Trim().StartsWith("{") && jsonMessage.Trim().EndsWith("}"))
             {
-                // Ищем поле "content" в JSON
+                // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ "content" пїЅ JSON
                 int contentStart = jsonMessage.IndexOf("\"content\"") + "\"content\"".Length;
                 if (contentStart > 0)
                 {
-                    // Пропускаем двоеточие и пробелы
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     contentStart = jsonMessage.IndexOf(':', contentStart) + 1;
                     while (contentStart < jsonMessage.Length && char.IsWhiteSpace(jsonMessage[contentStart]))
                         contentStart++;
 
-                    // Определяем начало и конец значения
+                    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     int valueStart = contentStart;
                     int valueEnd = jsonMessage.Length - 1;
 
-                    // Если значение в кавычках
+                    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                     if (valueStart < jsonMessage.Length && jsonMessage[valueStart] == '"')
                     {
-                        valueStart++; // Пропускаем открывающую кавычку
+                        valueStart++; // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
                         valueEnd = jsonMessage.IndexOf('"', valueStart);
                         if (valueEnd < 0) valueEnd = jsonMessage.Length - 1;
                     }
                     else
                     {
-                        // Ищем конец значения (запятая или закрывающая скобка)
+                        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ)
                         valueEnd = valueStart;
                         while (valueEnd < jsonMessage.Length &&
                                jsonMessage[valueEnd] != ',' &&
@@ -143,7 +143,7 @@ public class ConsoleOutput : MonoBehaviour
             Debug.LogWarning($"Failed to extract content from JSON: {e.Message}");
         }
 
-        // Если не удалось извлечь из JSON, возвращаем оригинальное сообщение
+        // пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ JSON, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         return jsonMessage;
     }
 
@@ -162,6 +162,7 @@ public class ConsoleOutput : MonoBehaviour
 
     private void UpdateConsoleDisplay()
     {
+        print(messageQueue.ToArray()[messageQueue.ToArray().Length-1]);
         if (consoleText != null)
             consoleText.text = string.Join("", messageQueue);
     }

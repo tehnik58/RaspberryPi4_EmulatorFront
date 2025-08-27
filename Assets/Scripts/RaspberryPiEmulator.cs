@@ -155,10 +155,10 @@ finally:
     private void HandleWebSocketMessage(string message)
     {
         //Debug.Log($"📨 Received: {message}");
-        if (consoleOutput != null)
-        {
-            consoleOutput.AddMessage(message, MessageType.Info);
-        }
+        //if (consoleOutput != null)
+        //{
+        //    consoleOutput.AddMessage(message, MessageType.Info);
+        //}
         DetectGPIOEvents(message);
     }
 
