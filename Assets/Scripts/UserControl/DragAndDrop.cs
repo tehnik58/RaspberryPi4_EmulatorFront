@@ -41,6 +41,8 @@ public class DragAndDrop : MonoBehaviour
 
     private void Update()
     {
+        if (!GameModeManager.Instance.editMode) return; // нельзя двигать в play mode
+
         if (!isDragging) return;
 
         Vector3 mousePos = Input.mousePosition;
@@ -56,10 +58,10 @@ public class DragAndDrop : MonoBehaviour
             dragDistance = Mathf.Clamp(dragDistance, 1f, 20f);
         }
 
-        // Визуальный поворот колеса до прикрепления (не влияет на WheelCollider)
-        if (Input.GetKey(KeyCode.Q))
+        // Визуальный поворот колеса
+        if (Input.GetKey(KeyCode.Z))
             transform.Rotate(Vector3.up, -rotateSpeed * Time.deltaTime, Space.World);
-        if (Input.GetKey(KeyCode.E))
+        if (Input.GetKey(KeyCode.C))
             transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime, Space.World);
     }
 }
