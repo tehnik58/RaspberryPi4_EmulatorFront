@@ -125,7 +125,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
         // Обновление UI состояния PWM
         //Debug.Log($"PWM Pin {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz");
         
-        SetInfoOnConsols($"\n<color=purple>PWM {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz</color>");
+        //SetInfoOnConsols($"\n<color=purple>PWM {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz</color>");
         Canvas.ForceUpdateCanvases();
         outputScrollRect.verticalNormalizedPosition = 0f;
     }

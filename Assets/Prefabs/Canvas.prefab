@@ -1145,7 +1145,9 @@ MonoBehaviour:
   codeInputField: {fileID: 888828533562442023}
   executeButton: {fileID: 1697612780705401584}
   stopButton: {fileID: 1751135483856514324}
-  outputText: {fileID: 3008039017720490765}
+  outputTexts:
+  - {fileID: 3008039017720490765}
+  - {fileID: 7998316627628034885}
   outputScrollRect: {fileID: 3484025694674450880}
   gpioPins: []
 --- !u!1 &5622077920967779675
@@ -2336,7 +2338,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 36500952306412890, guid: 76e61e1f521135549ba7ad49dc06add8, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 555.8
+      value: 555.7999
       objectReference: {fileID: 0}
     - target: {fileID: 245825427058818412, guid: 76e61e1f521135549ba7ad49dc06add8, type: 3}
       propertyPath: m_Pivot.x
@@ -2540,8 +2542,51 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1186083568831064944, guid: f9d9186aab9fe994dad1612f690e3c3b, type: 3}
+      propertyPath: m_text
+      value: "import time\r\nimport random\r\nfrom RPi import GPIO\r\n\r\ndef test_with_visualization():\r\n   
+        \"\"\"\u0422\u0435\u0441\u0442 \u0441 \u0432\u044B\u0432\u043E\u0434\u043E\u043C
+        \u0434\u0430\u043D\u043D\u044B\u0445 \u0434\u043B\u044F \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0438\"\"\"\r\n   
+        print(\"=== \u0422\u0435\u0441\u0442 \u0441 \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0435\u0439
+        ===\")\r\n    \r\n    # \u041F\u0438\u043D\u044B \u0434\u043B\u044F \u0442\u0435\u0441\u0442\u0430\r\n   
+        MOTOR_PINS = [17, 18, 27, 22]\r\n    \r\n    GPIO.setmode(GPIO.BCM)\r\n   
+        for pin in MOTOR_PINS:\r\n        GPIO.setup(pin, GPIO.OUT)\r\n    \r\n   
+        pwm = GPIO.PWM(MOTOR_PINS[0], 1000)\r\n    pwm.start(0)\r\n    \r\n    try:\r\n       
+        print(\"\u0417\u0430\u043F\u0443\u0441\u043A \u0442\u0435\u0441\u0442\u0430
+        \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0438...\")\r\n       
+        \r\n        # \u0421\u0438\u043C\u0443\u043B\u044F\u0446\u0438\u044F \u0440\u0430\u0437\u043B\u0438\u0447\u043D\u044B\u0445
+        \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0439 \u043C\u043E\u0442\u043E\u0440\u043E\u0432\r\n       
+        for test_phase in range(1, 6):\r\n            print(f\"\\n--- \u0424\u0430\u0437\u0430
+        \u0442\u0435\u0441\u0442\u0430 {test_phase} ---\")\r\n            \r\n           
+        if test_phase == 1:\r\n                print(\"\u041F\u043B\u0430\u0432\u043D\u044B\u0439
+        \u0440\u0430\u0437\u0433\u043E\u043D\")\r\n                for duty in range(0,
+        101, 5):\r\n                    pwm.ChangeDutyCycle(duty)\r\n                   
+        print(f\"MOTOR_SPEED: {duty}%\")\r\n                    time.sleep(0.2)\r\n           
+        \r\n            elif test_phase == 2:\r\n                print(\"\u0420\u0435\u0432\u0435\u0440\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\")\r\n               
+        for duty in [100, 50, 0, 50, 100]:\r\n                    pwm.ChangeDutyCycle(duty)\r\n                   
+        direction = \"FORWARD\" if duty > 0 else \"STOPPED\"\r\n                   
+        print(f\"MOTOR_STATE: {direction} at {duty}%\")\r\n                    time.sleep(1)\r\n           
+        \r\n            elif test_phase == 3:\r\n                print(\"\u041F\u0443\u043B\u044C\u0441\u0430\u0446\u0438\u044F\")\r\n               
+        for _ in range(10):\r\n                    duty = random.randint(20, 80)\r\n                   
+        pwm.ChangeDutyCycle(duty)\r\n                    print(f\"MOTOR_PULSE: {duty}%\")\r\n                   
+        time.sleep(0.3)\r\n            \r\n            elif test_phase == 4:\r\n               
+        print(\"\u0421\u0442\u0443\u043F\u0435\u043D\u0447\u0430\u0442\u043E\u0435
+        \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435\")\r\n               
+        for duty in [0, 25, 50, 75, 100, 75, 50, 25, 0]:\r\n                    pwm.ChangeDutyCycle(duty)\r\n                   
+        print(f\"MOTOR_STEP: {duty}%\")\r\n                    time.sleep(0.5)\r\n           
+        \r\n            elif test_phase == 5:\r\n                print(\"\u0410\u0432\u0430\u0440\u0438\u0439\u043D\u0430\u044F
+        \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430\")\r\n               
+        pwm.ChangeDutyCycle(80)\r\n                print(\"MOTOR_EMERGENCY: RUNNING\")\r\n               
+        time.sleep(1)\r\n                pwm.ChangeDutyCycle(0)\r\n               
+        print(\"MOTOR_EMERGENCY: STOPPED\")\r\n                time.sleep(1)\r\n               
+        \r\n    finally:\r\n        pwm.stop()\r\n        GPIO.cleanup()\r\n       
+        print(\"\u0422\u0435\u0441\u0442 \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0438
+        \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\")\r\n\r\n# \u0417\u0430\u043F\u0443\u0441\u043A
+        \u0442\u0435\u0441\u0442\u0430 \u0441 \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0435\u0439\r\nif
+        __name__ == \"__main__\":\r\n    test_with_visualization()\u200B"
+      objectReference: {fileID: 0}
+    - target: {fileID: 1186083568831064944, guid: f9d9186aab9fe994dad1612f690e3c3b, type: 3}
       propertyPath: m_fontSize
-      value: 20
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 1186083568831064944, guid: f9d9186aab9fe994dad1612f690e3c3b, type: 3}
       propertyPath: m_fontSizeMax
@@ -2638,6 +2683,49 @@ PrefabInstance:
     - target: {fileID: 5843729415086851961, guid: f9d9186aab9fe994dad1612f690e3c3b, type: 3}
       propertyPath: m_Name
       value: CodeEditorPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 7415910919629873479, guid: f9d9186aab9fe994dad1612f690e3c3b, type: 3}
+      propertyPath: m_Text
+      value: "import time\r\nimport random\r\nfrom RPi import GPIO\r\n\r\ndef test_with_visualization():\r\n   
+        \"\"\"\u0422\u0435\u0441\u0442 \u0441 \u0432\u044B\u0432\u043E\u0434\u043E\u043C
+        \u0434\u0430\u043D\u043D\u044B\u0445 \u0434\u043B\u044F \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0438\"\"\"\r\n   
+        print(\"=== \u0422\u0435\u0441\u0442 \u0441 \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0435\u0439
+        ===\")\r\n    \r\n    # \u041F\u0438\u043D\u044B \u0434\u043B\u044F \u0442\u0435\u0441\u0442\u0430\r\n   
+        MOTOR_PINS = [17, 18, 27, 22]\r\n    \r\n    GPIO.setmode(GPIO.BCM)\r\n   
+        for pin in MOTOR_PINS:\r\n        GPIO.setup(pin, GPIO.OUT)\r\n    \r\n   
+        pwm = GPIO.PWM(MOTOR_PINS[0], 1000)\r\n    pwm.start(0)\r\n    \r\n    try:\r\n       
+        print(\"\u0417\u0430\u043F\u0443\u0441\u043A \u0442\u0435\u0441\u0442\u0430
+        \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0438...\")\r\n       
+        \r\n        # \u0421\u0438\u043C\u0443\u043B\u044F\u0446\u0438\u044F \u0440\u0430\u0437\u043B\u0438\u0447\u043D\u044B\u0445
+        \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u0439 \u043C\u043E\u0442\u043E\u0440\u043E\u0432\r\n       
+        for test_phase in range(1, 6):\r\n            print(f\"\\n--- \u0424\u0430\u0437\u0430
+        \u0442\u0435\u0441\u0442\u0430 {test_phase} ---\")\r\n            \r\n           
+        if test_phase == 1:\r\n                print(\"\u041F\u043B\u0430\u0432\u043D\u044B\u0439
+        \u0440\u0430\u0437\u0433\u043E\u043D\")\r\n                for duty in range(0,
+        101, 5):\r\n                    pwm.ChangeDutyCycle(duty)\r\n                   
+        print(f\"MOTOR_SPEED: {duty}%\")\r\n                    time.sleep(0.2)\r\n           
+        \r\n            elif test_phase == 2:\r\n                print(\"\u0420\u0435\u0432\u0435\u0440\u0441\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u0435\")\r\n               
+        for duty in [100, 50, 0, 50, 100]:\r\n                    pwm.ChangeDutyCycle(duty)\r\n                   
+        direction = \"FORWARD\" if duty > 0 else \"STOPPED\"\r\n                   
+        print(f\"MOTOR_STATE: {direction} at {duty}%\")\r\n                    time.sleep(1)\r\n           
+        \r\n            elif test_phase == 3:\r\n                print(\"\u041F\u0443\u043B\u044C\u0441\u0430\u0446\u0438\u044F\")\r\n               
+        for _ in range(10):\r\n                    duty = random.randint(20, 80)\r\n                   
+        pwm.ChangeDutyCycle(duty)\r\n                    print(f\"MOTOR_PULSE: {duty}%\")\r\n                   
+        time.sleep(0.3)\r\n            \r\n            elif test_phase == 4:\r\n               
+        print(\"\u0421\u0442\u0443\u043F\u0435\u043D\u0447\u0430\u0442\u043E\u0435
+        \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435\")\r\n               
+        for duty in [0, 25, 50, 75, 100, 75, 50, 25, 0]:\r\n                    pwm.ChangeDutyCycle(duty)\r\n                   
+        print(f\"MOTOR_STEP: {duty}%\")\r\n                    time.sleep(0.5)\r\n           
+        \r\n            elif test_phase == 5:\r\n                print(\"\u0410\u0432\u0430\u0440\u0438\u0439\u043D\u0430\u044F
+        \u043E\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430\")\r\n               
+        pwm.ChangeDutyCycle(80)\r\n                print(\"MOTOR_EMERGENCY: RUNNING\")\r\n               
+        time.sleep(1)\r\n                pwm.ChangeDutyCycle(0)\r\n               
+        print(\"MOTOR_EMERGENCY: STOPPED\")\r\n                time.sleep(1)\r\n               
+        \r\n    finally:\r\n        pwm.stop()\r\n        GPIO.cleanup()\r\n       
+        print(\"\u0422\u0435\u0441\u0442 \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0438
+        \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\")\r\n\r\n# \u0417\u0430\u043F\u0443\u0441\u043A
+        \u0442\u0435\u0441\u0442\u0430 \u0441 \u0432\u0438\u0437\u0443\u0430\u043B\u0438\u0437\u0430\u0446\u0438\u0435\u0439\r\nif
+        __name__ == \"__main__\":\r\n    test_with_visualization()"
       objectReference: {fileID: 0}
     - target: {fileID: 8720685076837167861, guid: f9d9186aab9fe994dad1612f690e3c3b, type: 3}
       propertyPath: m_Pivot.x

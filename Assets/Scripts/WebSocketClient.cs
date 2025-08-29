@@ -27,7 +27,10 @@ public class WebSocketClient : MonoBehaviour
     // Регулярные выражения для парсинга
     private Regex gpioOutputRegex = new Regex(@"GPIO\s+(\d+)\s+output:\s*(True|False)", RegexOptions.IgnoreCase);
     private Regex emuEventRegex = new Regex(@"@@EMU_EVENT:(\{.*?\})");
-    private Regex pwmDutyRegex = new Regex(@"PWM duty cycle changed to (\d+)% on pin (\d+)", RegexOptions.IgnoreCase);
+    private Regex pwmDutyRegex = new Regex(@"PWM duty cycle changed to (\d+)% on pin (\d+) at (\d+)Hz", RegexOptions.IgnoreCase);
+    private Regex pwmFrequencyRegex = new Regex(@"PWM frequency changed to (\d+)Hz on pin (\d+)", RegexOptions.IgnoreCase);
+    private Regex pwmInitRegex = new Regex(@"PWM initialized on pin (\d+) at (\d+)Hz", RegexOptions.IgnoreCase);
+    private Regex pwmFullRegex = new Regex(@"PWM pin (\d+): duty cycle=(\d+)%, frequency=(\d+)Hz", RegexOptions.IgnoreCase);
     
     async void Start()
     {
@@ -122,7 +125,6 @@ public class WebSocketClient : MonoBehaviour
             jsonMessage = RemoveControlCharacters(jsonMessage);
             
             var message = JsonUtility.FromJson<ServerMessageBase>(jsonMessage);
-            print(message.type);
             switch (message.type)
             {
                 case "output":
@@ -213,22 +215,81 @@ public class WebSocketClient : MonoBehaviour
                 continue;
             }
             
-            // Пытаемся распарсить PWM duty cycle изменения
-            Match pwmMatch = pwmDutyRegex.Match(line);
-            if (pwmMatch.Success)
+            // Пытаемся распарсить полное PWM сообщение (duty cycle + frequency)
+            Match pwmFullMatch = pwmFullRegex.Match(line);
+            if (pwmFullMatch.Success)
             {
-                float dutyCycle = float.Parse(pwmMatch.Groups[1].Value);
-                int pin = int.Parse(pwmMatch.Groups[2].Value);
+                int pin = int.Parse(pwmFullMatch.Groups[1].Value);
+                float dutyCycle = float.Parse(pwmFullMatch.Groups[2].Value);
+                float frequency = float.Parse(pwmFullMatch.Groups[3].Value);
                 
-                // Создаем PWM событие на основе текстового вывода
                 var pwmUpdate = new PwmStateUpdate
                 {
                     pin = pin,
                     duty_cycle = dutyCycle,
-                    frequency = 100 // Предполагаемая частота по умолчанию
+                    frequency = frequency
                 };
                 
                 OnPwmStateUpdated?.Invoke(pwmUpdate);
+                Debug.Log($"PWM Full: Pin {pin}, Duty: {dutyCycle}%, Freq: {frequency}Hz");
+                continue;
+            }
+            
+            // Пытаемся распарсить PWM duty cycle изменения с frequency
+            Match pwmDutyMatch = pwmDutyRegex.Match(line);
+            if (pwmDutyMatch.Success)
+            {
+                float dutyCycle = float.Parse(pwmDutyMatch.Groups[1].Value);
+                int pin = int.Parse(pwmDutyMatch.Groups[2].Value);
+                float frequency = float.Parse(pwmDutyMatch.Groups[3].Value);
+                
+                var pwmUpdate = new PwmStateUpdate
+                {
+                    pin = pin,
+                    duty_cycle = dutyCycle,
+                    frequency = frequency
+                };
+                
+                OnPwmStateUpdated?.Invoke(pwmUpdate);
+                Debug.Log($"PWM Duty: Pin {pin}, Duty: {dutyCycle}%, Freq: {frequency}Hz");
+                continue;
+            }
+            
+            // Пытаемся распарсить PWM frequency изменения
+            Match pwmFreqMatch = pwmFrequencyRegex.Match(line);
+            if (pwmFreqMatch.Success)
+            {
+                float frequency = float.Parse(pwmFreqMatch.Groups[1].Value);
+                int pin = int.Parse(pwmFreqMatch.Groups[2].Value);
+                
+                var pwmUpdate = new PwmStateUpdate
+                {
+                    pin = pin,
+                    frequency = frequency
+                    // duty_cycle остается неизменным
+                };
+                
+                OnPwmStateUpdated?.Invoke(pwmUpdate);
+                Debug.Log($"PWM Freq: Pin {pin}, Freq: {frequency}Hz");
+                continue;
+            }
+            
+            // Пытаемся распарсить PWM инициализацию
+            Match pwmInitMatch = pwmInitRegex.Match(line);
+            if (pwmInitMatch.Success)
+            {
+                int pin = int.Parse(pwmInitMatch.Groups[1].Value);
+                float frequency = float.Parse(pwmInitMatch.Groups[2].Value);
+                
+                var pwmUpdate = new PwmStateUpdate
+                {
+                    pin = pin,
+                    duty_cycle = 0, // По умолчанию 0% при инициализации
+                    frequency = frequency
+                };
+                
+                OnPwmStateUpdated?.Invoke(pwmUpdate);
+                Debug.Log($"PWM Init: Pin {pin}, Freq: {frequency}Hz");
                 continue;
             }
             
