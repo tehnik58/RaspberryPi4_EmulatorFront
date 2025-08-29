@@ -22,9 +22,12 @@ public class WebSocketClient : MonoBehaviour
     public event Action<GpioStateUpdate> OnGpioStateUpdated;
     public event Action<PwmStateUpdate> OnPwmStateUpdated;
     public event Action<SensorDataUpdate> OnSensorDataUpdated;
+    public event Action<EmuEvent> OnEmuEventReceived;
     
-    // Регулярное выражение для парсинга GPIO output
+    // Регулярные выражения для парсинга
     private Regex gpioOutputRegex = new Regex(@"GPIO\s+(\d+)\s+output:\s*(True|False)", RegexOptions.IgnoreCase);
+    private Regex emuEventRegex = new Regex(@"@@EMU_EVENT:(\{.*?\})");
+    private Regex pwmDutyRegex = new Regex(@"PWM duty cycle changed to (\d+)% on pin (\d+)", RegexOptions.IgnoreCase);
     
     async void Start()
     {
@@ -119,7 +122,7 @@ public class WebSocketClient : MonoBehaviour
             jsonMessage = RemoveControlCharacters(jsonMessage);
             
             var message = JsonUtility.FromJson<ServerMessageBase>(jsonMessage);
-            
+            print(message.type);
             switch (message.type)
             {
                 case "output":
@@ -149,13 +152,18 @@ public class WebSocketClient : MonoBehaviour
                     
                 case "pwm_state_update":
                     var pwmMsg = JsonUtility.FromJson<PwmStateUpdate>(jsonMessage);
-                    print(pwmMsg);
                     OnPwmStateUpdated?.Invoke(pwmMsg);
                     break;
                     
                 case "sensor_data_update":
                     var sensorMsg = JsonUtility.FromJson<SensorDataUpdate>(jsonMessage);
                     OnSensorDataUpdated?.Invoke(sensorMsg);
+                    break;
+                    
+                case "emu_event":
+                    var emuEventMsg = JsonUtility.FromJson<EmuEventMessage>(jsonMessage);
+                    print(emuEventMsg.@event);
+                    OnEmuEventReceived?.Invoke(emuEventMsg.@event);
                     break;
                     
                 default:
@@ -169,31 +177,138 @@ public class WebSocketClient : MonoBehaviour
         }
     }
     
-    // Обработка output сообщений с парсингом GPIO output
+    // Обработка output сообщений с парсингом различных форматов
     private void HandleOutputMessage(string output)
     {
-        // Пытаемся распарсить GPIO output
-        Match match = gpioOutputRegex.Match(output);
-        if (match.Success)
+        // Разделяем сообщение на строки для обработки
+        string[] lines = output.Split('\n');
+        
+        foreach (string line in lines)
         {
-            int pin = int.Parse(match.Groups[1].Value);
-            bool state = match.Groups[2].Value.ToLower() == "true";
+            if (string.IsNullOrEmpty(line.Trim())) continue;
             
-            // Создаем событие обновления GPIO
-            var gpioUpdate = new GpioStateUpdate
+            // Пытаемся найти EMU_EVENT
+            Match emuMatch = emuEventRegex.Match(line);
+            if (emuMatch.Success)
             {
-                pin = pin,
-                state = state,
-                mode = "output"
-            };
+                HandleEmuEvent(emuMatch.Groups[1].Value);
+                continue;
+            }
             
-            OnGpioStateUpdated?.Invoke(gpioUpdate);
+            // Пытаемся распарсить GPIO output
+            Match gpioMatch = gpioOutputRegex.Match(line);
+            if (gpioMatch.Success)
+            {
+                int pin = int.Parse(gpioMatch.Groups[1].Value);
+                bool state = gpioMatch.Groups[2].Value.ToLower() == "true";
+                
+                var gpioUpdate = new GpioStateUpdate
+                {
+                    pin = pin,
+                    state = state,
+                    mode = "output"
+                };
+                
+                OnGpioStateUpdated?.Invoke(gpioUpdate);
+                continue;
+            }
+            
+            // Пытаемся распарсить PWM duty cycle изменения
+            Match pwmMatch = pwmDutyRegex.Match(line);
+            if (pwmMatch.Success)
+            {
+                float dutyCycle = float.Parse(pwmMatch.Groups[1].Value);
+                int pin = int.Parse(pwmMatch.Groups[2].Value);
+                
+                // Создаем PWM событие на основе текстового вывода
+                var pwmUpdate = new PwmStateUpdate
+                {
+                    pin = pin,
+                    duty_cycle = dutyCycle,
+                    frequency = 100 // Предполагаемая частота по умолчанию
+                };
+                
+                OnPwmStateUpdated?.Invoke(pwmUpdate);
+                continue;
+            }
+            
+            // Если не нашли специальных форматов, отправляем как обычный вывод
+            OnOutputReceived?.Invoke(line);
         }
-        else
+    }
+    
+    // Обработка EMU_EVENT событий
+    private void HandleEmuEvent(string jsonEvent)
+    {
+        try
         {
-            // Если не GPIO output, отправляем как обычный вывод
-            OnOutputReceived?.Invoke(output);
+            var emuEvent = JsonUtility.FromJson<EmuEvent>(jsonEvent);
+            OnEmuEventReceived?.Invoke(emuEvent);
+            
+            // Обработка конкретных типов событий
+            switch (emuEvent.type)
+            {
+                case "pwm_event":
+                    HandlePwmEvent(emuEvent);
+                    break;
+                    
+                case "gpio_event":
+                    HandleGpioEvent(emuEvent);
+                    break;
+                    
+                case "sensor_event":
+                    HandleSensorEvent(emuEvent);
+                    break;
+                    
+                default:
+                    Debug.Log("Unknown EMU event type: " + emuEvent.type);
+                    break;
+            }
         }
+        catch (Exception e)
+        {
+            Debug.LogError("Error parsing EMU_EVENT: " + e.Message + "\nJSON: " + jsonEvent);
+        }
+    }
+    
+    // Обработка PWM событий
+    private void HandlePwmEvent(EmuEvent emuEvent)
+    {
+        var pwmUpdate = new PwmStateUpdate
+        {
+            pin = emuEvent.pin,
+            frequency = emuEvent.frequency,
+            duty_cycle = emuEvent.duty_cycle
+        };
+        
+        OnPwmStateUpdated?.Invoke(pwmUpdate);
+        
+        Debug.Log($"PWM Event: {emuEvent.@event} - Pin {emuEvent.pin}, " +
+                 $"Duty Cycle: {emuEvent.duty_cycle}%, Frequency: {emuEvent.frequency}Hz");
+    }
+    
+    // Обработка GPIO событий
+    private void HandleGpioEvent(EmuEvent emuEvent)
+    {
+        var gpioUpdate = new GpioStateUpdate
+        {
+            pin = emuEvent.pin,
+            state = emuEvent.state,
+            mode = emuEvent.mode
+        };
+        OnGpioStateUpdated?.Invoke(gpioUpdate);
+    }
+    
+    // Обработка сенсорных событий
+    private void HandleSensorEvent(EmuEvent emuEvent)
+    {
+        var sensorUpdate = new SensorDataUpdate
+        {
+            sensor = emuEvent.sensor_type,
+            value = emuEvent.value,
+            unit = emuEvent.unit
+        };
+        OnSensorDataUpdated?.Invoke(sensorUpdate);
     }
     
     // Правильное экранирование строк для JSON
@@ -235,7 +350,7 @@ public class WebSocketClient : MonoBehaviour
     }
 }
 
-// Классы для десериализации сообщений
+// Классы для десериализации сообщений (остаются без изменений)
 [System.Serializable]
 public class ServerMessageBase
 {
@@ -286,6 +401,27 @@ public class PwmStateUpdate : ServerMessageBase
 public class SensorDataUpdate : ServerMessageBase
 {
     public string sensor;
+    public float value;
+    public string unit;
+}
+
+[System.Serializable]
+public class EmuEventMessage : ServerMessageBase
+{
+    public EmuEvent @event;
+}
+
+[System.Serializable]
+public class EmuEvent
+{
+    public string type;
+    public string @event;
+    public int pin;
+    public float frequency;
+    public float duty_cycle;
+    public bool state;
+    public string mode;
+    public string sensor_type;
     public float value;
     public string unit;
 }

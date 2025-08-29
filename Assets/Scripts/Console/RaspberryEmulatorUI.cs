@@ -46,7 +46,30 @@ public class RaspberryEmulatorUI : MonoBehaviour
     
     void HandleOutput(string output)
     {
-        outputText.text += $"\n{output}";
+        // Разделяем сообщение на строки
+        string[] lines = output.Split('\n');
+    
+        foreach (string line in lines)
+        {
+            if (string.IsNullOrEmpty(line.Trim())) continue;
+        
+            // Проверяем, не является ли строка EMU_EVENT (чтобы не дублировать вывод)
+            if (line.Contains("@@EMU_EVENT:"))
+            {
+                // EMU_EVENT уже обработан отдельно, пропускаем дублирование
+                continue;
+            }
+        
+            // Проверяем, не является ли строка автоматическим PWM выводом
+            if (line.Contains("PWM duty cycle changed to") && line.Contains("on pin"))
+            {
+                // PWM изменения уже обработаны отдельно, пропускаем дублирование
+                continue;
+            }
+        
+            outputText.text += $"\n{line}";
+        }
+    
         Canvas.ForceUpdateCanvases();
         outputScrollRect.verticalNormalizedPosition = 0f;
     }
@@ -92,7 +115,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
     void HandlePwmStateUpdate(PwmStateUpdate update)
     {
         // Обновление UI состояния PWM
-        Debug.Log($"PWM Pin {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz");
+        //Debug.Log($"PWM Pin {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz");
         
         outputText.text += $"\n<color=purple>PWM {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz</color>";
         Canvas.ForceUpdateCanvases();
