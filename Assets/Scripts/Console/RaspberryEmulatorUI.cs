@@ -11,7 +11,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
     public TMP_InputField codeInputField;
     public Button executeButton;
     public Button stopButton;
-    public TMP_Text outputText;
+    public List<TMP_Text> outputTexts;
     public ScrollRect outputScrollRect;
     
     // Визуализация GPIO пинов
@@ -30,6 +30,14 @@ public class RaspberryEmulatorUI : MonoBehaviour
         webSocketClient.OnGpioStateUpdated += HandleGpioStateUpdate;
         webSocketClient.OnPwmStateUpdated += HandlePwmStateUpdate;
         webSocketClient.OnSensorDataUpdated += HandleSensorDataUpdate;
+    }
+
+    private void SetInfoOnConsols(string text)
+    {
+        foreach (var output in outputTexts)
+        {
+            output.text += text;
+        }
     }
     
     void ExecuteCode()
@@ -67,7 +75,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
                 continue;
             }
         
-            outputText.text += $"\n{line}";
+            SetInfoOnConsols($"\n{line}");
         }
     
         Canvas.ForceUpdateCanvases();
@@ -76,19 +84,19 @@ public class RaspberryEmulatorUI : MonoBehaviour
     
     void HandleError(string error)
     {
-        outputText.text += $"\n<color=red>ERROR: {error}</color>";
+        SetInfoOnConsols($"\n<color=red>ERROR: {error}</color>");
         Canvas.ForceUpdateCanvases();
         outputScrollRect.verticalNormalizedPosition = 0f;
     }
     
     void HandleExecutionStarted(string message)
     {
-        outputText.text += $"\n<color=green>{message}</color>";
+        SetInfoOnConsols($"\n<color=green>{message}</color>");
     }
     
     void HandleExecutionCompleted(string message)
     {
-        outputText.text += $"\n<color=green>{message}</color>";
+        SetInfoOnConsols($"\n<color=green>{message}</color>");
     }
     
     void HandleGpioStateUpdate(GpioStateUpdate update)
@@ -107,7 +115,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
         }
         
         // Также выводим в лог
-        outputText.text += $"\n<color=blue>GPIO {update.pin} {update.mode}: {update.state}</color>";
+        SetInfoOnConsols($"\n<color=blue>GPIO {update.pin} {update.mode}: {update.state}</color>");
         Canvas.ForceUpdateCanvases();
         outputScrollRect.verticalNormalizedPosition = 0f;
     }
@@ -117,7 +125,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
         // Обновление UI состояния PWM
         //Debug.Log($"PWM Pin {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz");
         
-        outputText.text += $"\n<color=purple>PWM {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz</color>";
+        SetInfoOnConsols($"\n<color=purple>PWM {update.pin}: Duty Cycle={update.duty_cycle}%, Frequency={update.frequency}Hz</color>");
         Canvas.ForceUpdateCanvases();
         outputScrollRect.verticalNormalizedPosition = 0f;
     }
@@ -127,7 +135,7 @@ public class RaspberryEmulatorUI : MonoBehaviour
         // Обновление UI данных с датчиков
         Debug.Log($"Sensor {update.sensor}: {update.value} {update.unit}");
         
-        outputText.text += $"\n<color=orange>{update.sensor}: {update.value} {update.unit}</color>";
+        SetInfoOnConsols($"\n<color=orange>{update.sensor}: {update.value} {update.unit}</color>");
         Canvas.ForceUpdateCanvases();
         outputScrollRect.verticalNormalizedPosition = 0f;
     }
