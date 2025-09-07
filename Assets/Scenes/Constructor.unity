@@ -594,6 +594,7 @@ GameObject:
   m_Component:
   - component: {fileID: 480556531}
   - component: {fileID: 480556530}
+  - component: {fileID: 480556532}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -608,7 +609,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 480556529}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d632c76f401c8594bb6226f6f9b1ba83, type: 3}
   m_Name: 
@@ -631,6 +632,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &480556532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 480556529}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d1c3e18cd5f8c549beb49d5a535a36c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridOrigin: {x: 0, y: 0, z: 0}
+  cellSize: 0.25
+  availableParts:
+  - {fileID: 11400000, guid: 8a20ec606ac497e44ba42a57a53235d7, type: 2}
+  - {fileID: 11400000, guid: c46822adec72fd54591dafbe2bdd1632, type: 2}
+  ghostPrefab: {fileID: 0}
+  builderCamera: {fileID: 131220337}
+  placementRaycastMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  attachDetectionRadius: 0.05
 --- !u!1 &486930379
 GameObject:
   m_ObjectHideFlags: 0

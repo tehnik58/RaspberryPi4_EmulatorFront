@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52bbc92684c6a8748b50f84c00e73afe, type: 3}
+  m_Name: Body
+  m_EditorClassIdentifier: 
+  partId: body_basic
+  prefab: {fileID: 7218316078275286722, guid: 896518572c4705b49bb87a1ccf0f2b22, type: 3}
+  sizeInCells: {x: 2, y: 1, z: 4}
+  mass: 5
+  defaultSocketType: default
