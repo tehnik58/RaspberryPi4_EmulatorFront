@@ -44,33 +44,55 @@ public class SaveLoadManager : MonoBehaviour
     {
         if (builder == null) { Debug.LogError("Builder reference missing"); return; }
         if (!File.Exists(SavePath)) { Debug.LogWarning("Save file not found: " + SavePath); return; }
+
         string json = File.ReadAllText(SavePath);
         SavedVehicle sv = JsonUtility.FromJson<SavedVehicle>(json);
-        // очистим сцену
+
         builder.ClearAllPlaced();
 
-        // ƒл€ каждой записи Ч найдем PartDefinition с совпадающим partId
+        List<GameObject> created = new List<GameObject>();
         foreach (var sp in sv.parts)
         {
             PartDefinition def = FindDefinitionById(sp.partId);
             if (def == null) { Debug.LogWarning("Definition not found for id: " + sp.partId); continue; }
-            GameObject go = Instantiate(def.prefab, sp.position, sp.rotation);
-            if (go.GetComponent<Rigidbody>() == null) go.AddComponent<Rigidbody>();
-            Part partComp = go.GetComponent<Part>();
-            if (partComp == null) partComp = go.AddComponent<Part>();
-            partComp.definition = def;
-            partComp.rb = go.GetComponent<Rigidbody>();
-            partComp.rb.mass = Mathf.Max(0.0001f, def.mass);
 
-            // после того как все части будут инстанцированы, можно создавать соединени€.
+            GameObject go = Instantiate(def.prefab, sp.position, sp.rotation);
+            Part partComp = go.GetComponent<Part>() ?? go.AddComponent<Part>();
+            partComp.definition = def;
+
+            // Rigidbody Ч только не дл€ визуального колеса
+            if (!def.isWheelVisual)
+            {
+                var rb = go.GetComponent<Rigidbody>() ?? go.AddComponent<Rigidbody>();
+                rb.mass = Mathf.Max(0.0001f, def.mass);
+                rb.isKinematic = true; rb.useGravity = false;
+                partComp.rb = rb;
+            }
+            else
+            {
+                var rb = go.GetComponent<Rigidbody>();
+                if (rb) Destroy(rb);
+            }
+
             builder.GetPlacedParts().Add(go);
+            created.Add(go);
+
+            // ≈сли есть ChassisPart, заново добавл€ем колЄса
+            ChassisPart chassis = go.GetComponent<ChassisPart>();
+            if (chassis != null)
+            {
+                foreach (Transform wheelVisual in chassis.wheelVisuals)
+                {
+                    chassis.AddWheel(wheelVisual);
+                }
+            }
         }
 
-        // ¬торой проход Ч создаЄм соединени€ между новыми част€ми (необходимо, потому что теперь все объекты в сцене)
-        foreach (var go in builder.GetPlacedParts())
+        // —оедин€ем детали
+        foreach (var go in created)
         {
             Part p = go.GetComponent<Part>();
-            if (p != null) builder.Invoke("CreateAttachJointsFor", 0.01f); // ассинхронный вызов простым способом
+            if (p != null) builder.CreateAttachJointsOrSnap(p);
         }
 
         Debug.Log($"Loaded {sv.parts.Count} parts from {SavePath}");
@@ -78,14 +100,12 @@ public class SaveLoadManager : MonoBehaviour
 
     PartDefinition FindDefinitionById(string id)
     {
-        // ищем по ресурсам или в сцене Ч быстрый способ: Resources.LoadAll<PartDefinition>
         var defs = Resources.LoadAll<PartDefinition>("");
         foreach (var d in defs) if (d.partId == id) return d;
-        // fallback: поиск в сцене у builder
+
         if (builder != null && builder.availableParts != null)
-        {
             foreach (var d in builder.availableParts) if (d != null && d.partId == id) return d;
-        }
+
         return null;
     }
 }
