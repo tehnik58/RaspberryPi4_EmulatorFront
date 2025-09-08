@@ -327,7 +327,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7218316078275286722}
   serializedVersion: 4
-  m_Mass: 8
+  m_Mass: 800
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -377,7 +377,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0123644c1299aab4bb5b9257cac85d2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wheels: []
+  wheelVisuals: []
+  wheelColliders: []
+  defaultWheelRadius: 0.35
+  defaultWheelWidth: 0.2
 --- !u!1 &8237518820458638048
 GameObject:
   m_ObjectHideFlags: 0

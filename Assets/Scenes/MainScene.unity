@@ -248,7 +248,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4.84, y: 4.84, z: 4.84}
+  m_LocalScale: {x: 23.68454, y: 23.68454, z: 23.68454}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 607094858}
@@ -584,7 +584,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 698905783}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0d1c3e18cd5f8c549beb49d5a535a36c, type: 3}
   m_Name: 
@@ -1956,6 +1956,34 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 453820372}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Load
+      objectReference: {fileID: 0}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: SaveLoadManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 3426669599403570749, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 3680426625460113476, guid: 707595221d48e024fa3831025e170d5a, type: 3}
       propertyPath: m_Name
       value: Canvas
@@ -1971,6 +1999,12 @@ PrefabInstance:
     - target: {fileID: 4782287493750687906, guid: 707595221d48e024fa3831025e170d5a, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -28.472412
+      objectReference: {fileID: 0}
+    - target: {fileID: 5033565809413809868, guid: 707595221d48e024fa3831025e170d5a, type: 3}
+      propertyPath: m_text
+      value: 'Load
+
+'
       objectReference: {fileID: 0}
     - target: {fileID: 6386548890441156479, guid: 707595221d48e024fa3831025e170d5a, type: 3}
       propertyPath: m_AnchoredPosition.y
